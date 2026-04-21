@@ -1,0 +1,48 @@
+# Default configuration for NetSec G-SafeGuard pipeline
+
+pipeline:
+  window_seconds: 60.0
+  stride_seconds: 30.0
+  sub_windows: 3                  # T: number of sub-windows per window (matches MA's 3 turns)
+  min_nodes_per_window: 2
+  min_edges_per_window: 1
+
+features:
+  node_feature_dim: 20
+  edge_feature_dim: 25
+  internal_networks:              # CIDRs considered "internal" for the is-internal flag
+    - "10.0.0.0/8"
+    - "172.16.0.0/12"
+    - "192.168.0.0/16"
+
+model:
+  hidden_channels: 256
+  heads: 4
+  num_layers: 2
+  dropout: 0.2
+  aggr_type: "mean"               # how to aggregate T sub-window edge features
+  residual: false
+
+train:
+  epochs: 50
+  batch_size: 32
+  lr: 0.001
+  weight_decay: 0.0002
+  pos_weight: 3.0                 # BCE pos_weight for malicious-host imbalance
+  val_split: 0.2
+  seed: 42
+
+detection:
+  threshold: 0.5
+
+mitigation:
+  policy: "drop"                  # one of: drop, rate_limit, redirect
+  granularity: "node"             # node | edge
+  rate_limit_mbps: 1.0
+
+simulation:
+  num_clients: 6
+  num_servers: 3
+  sim_duration_seconds: 60.0
+  link_bw_mbps: 100
+  link_delay_ms: 2
