@@ -1,0 +1,3 @@
+# CICIDS2017 test manifest: held-out Friday PCAPs.
+# Use for 03_detect.sh / evaluate.detection_metrics.
+/data/cicids2017/pcaps/Friday-WorkingHours.pcap /data/cicids2017/labels/Friday-WorkingHours.pcap_ISCX.csv

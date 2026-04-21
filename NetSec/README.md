@@ -71,6 +71,28 @@ conda activate gsafeguard
 pip install -r NetSec/requirements.txt
 ```
 
+## Recommended dataset: CICIDS2017
+
+CICIDS2017 is the best fit for this pipeline:
+
+- Ships as **five labeled PCAPs** (one per weekday) plus matching per-flow label CSVs.
+- Contains diverse attacks already in our feature schema: port scanning, brute force, web attacks, infiltration, botnet/C2, DDoS.
+- The CSV columns match what [`parsing/labels.py`](parsing/labels.py) expects, so no custom joiner is needed.
+
+Download/registration: [https://www.unb.ca/cic/datasets/ids-2017.html](https://www.unb.ca/cic/datasets/ids-2017.html)
+
+Recommended split:
+- **Train:** Tuesday, Wednesday, Thursday PCAPs (covers FTP/SSH brute force, DoS, web attacks, infiltration, botnet).
+- **Test (held-out):** Friday PCAPs (port scan, DDoS).
+
+See the example manifests in `NetSec/data/manifest_cicids2017.example.txt` and
+`NetSec/data/manifest_cicids2017_test.example.txt`.
+
+Other datasets that plug in with minor glue (use `labels.attach_known_attackers` or a small custom joiner):
+- CIC-IDS2018 (same organisation, newer).
+- UNSW-NB15.
+- CTU-13 (botnet/C2 heavy).
+
 ## Step-by-step usage
 
 ### 1. PCAP -> labeled graph snapshots
@@ -92,6 +114,40 @@ bash NetSec/scripts/01_prepare_data.sh \
 ```
 
 Outputs `flows.csv`, `flows_labeled.csv`, and `snapshots.json`.
+
+### 1b. Multi-PCAP training (recommended)
+
+Single-PCAP training often does not give enough labeled windows to generalise.
+Use the manifest-based multi-PCAP workflow:
+
+```bash
+# Edit NetSec/data/manifest_cicids2017.example.txt to point at your local PCAPs.
+bash NetSec/scripts/01b_prepare_multi.sh \
+    NetSec/data/manifest_cicids2017.example.txt \
+    NetSec/result/train_multi
+```
+
+This:
+
+1. Runs `01_prepare_data.sh` for each entry (parse -> label -> snapshots).
+2. Merges all per-PCAP `snapshots.json` into `NetSec/result/train_multi/snapshots.json` via `python -m NetSec.parsing.merge_snapshots`.
+
+Manifest lines accept three label modes:
+
+| Second column           | Meaning                                               |
+| ----------------------- | ----------------------------------------------------- |
+| `/path/to/labels.csv`   | CICIDS2017-style labels CSV                           |
+| `@/path/attackers.txt`  | Plain-text list of attacker IPs                       |
+| `-`                     | Treat every flow as BENIGN (background-only captures) |
+
+Then feed the merged snapshots to step 2 as usual:
+
+```bash
+bash NetSec/scripts/02_train.sh NetSec/result/train_multi/snapshots.json auto
+```
+
+Repeat the same for your test set (separate manifest / directory) and continue
+with step 3.
 
 ### 2. Train NetGAT
 

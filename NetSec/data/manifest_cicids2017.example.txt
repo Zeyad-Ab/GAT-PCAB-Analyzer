@@ -1,0 +1,18 @@
+# CICIDS2017 (Canadian Institute for Cybersecurity, 2017) manifest.
+#
+# Dataset homepage: https://www.unb.ca/cic/datasets/ids-2017.html
+# It ships as five PCAPs (one per day) plus a matching per-flow labeled CSV per day.
+# Place them somewhere reachable from the cluster and adjust the absolute paths below.
+#
+# Format: <pcap> <labels_csv_or_@attackers.txt_or_->
+#   -            = label every flow as BENIGN (no ground truth available)
+#   @file.txt    = use a plain list of attacker IPs as labels
+#   /path.csv    = CICIDS-style flow labels (Source IP, Destination IP, ...)
+#
+# --- TRAIN SPLIT (recommended: Tuesday-Thursday) ---
+/data/cicids2017/pcaps/Tuesday-WorkingHours.pcap   /data/cicids2017/labels/Tuesday-WorkingHours.pcap_ISCX.csv
+/data/cicids2017/pcaps/Wednesday-WorkingHours.pcap /data/cicids2017/labels/Wednesday-WorkingHours.pcap_ISCX.csv
+/data/cicids2017/pcaps/Thursday-WorkingHours.pcap  /data/cicids2017/labels/Thursday-WorkingHours.pcap_ISCX.csv
+
+# --- TEST SPLIT (held-out): move this line to a separate manifest if you want a clean holdout ---
+# /data/cicids2017/pcaps/Friday-WorkingHours.pcap  /data/cicids2017/labels/Friday-WorkingHours.pcap_ISCX.csv
